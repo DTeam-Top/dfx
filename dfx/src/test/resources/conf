@@ -1,0 +1,9 @@
+port = 7000
+
+"/method1" {
+    plugin = "top.dteam.dfx.plugin.implment.Plugin1"
+}
+
+"/method2" {
+    plugin = "top.dteam.dfx.plugin.implment.Plugin2"
+}
