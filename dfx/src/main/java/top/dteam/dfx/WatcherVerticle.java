@@ -17,6 +17,7 @@ public class WatcherVerticle extends AbstractVerticle {
     private int watchCycle;
 
     private WatchService watchService;
+    private WatchKey key;
 
     public WatcherVerticle(int watchCycle) throws IOException {
         this.watchCycle = watchCycle;
@@ -50,7 +51,7 @@ public class WatcherVerticle extends AbstractVerticle {
 
         vertx.setPeriodic(watchCycle, tid -> {
             try {
-                WatchKey key = watchService.poll(100, TimeUnit.MILLISECONDS);
+                key = watchService.poll(100, TimeUnit.MILLISECONDS);
 
                 if (key == null) {
                     return;
@@ -76,14 +77,11 @@ public class WatcherVerticle extends AbstractVerticle {
                         }
 
                         // consumer will undeploy this verticle
-                        vertx.eventBus().send(PluginManagerVerticle.PLUGINS_CHANGED, this.deploymentID());
-                    }
-
-                    boolean valid = key.reset();
-                    if (!valid) {
-                        break;
+//                        vertx.eventBus().send(PluginManagerVerticle.PLUGINS_CHANGED, this.deploymentID());
                     }
                 }
+
+                key.reset();
             } catch (InterruptedException e) {
                 return;
             }

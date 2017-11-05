@@ -28,11 +28,9 @@ public class PluginManagerVerticle extends AbstractVerticle {
 
     private DfxConfig config;
     private PluginManager pluginManager;
-    private Map<String, CircuitBreaker> circuitBreakerMap;
 
     public PluginManagerVerticle(DfxConfig config) {
         this.config = config;
-        this.circuitBreakerMap = new HashMap<>();
     }
 
     @Override
