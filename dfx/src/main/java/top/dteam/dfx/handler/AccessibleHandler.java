@@ -1,9 +1,10 @@
 package top.dteam.dfx.handler;
 
+import io.vertx.circuitbreaker.CircuitBreaker;
 import io.vertx.core.Handler;
 import io.vertx.core.MultiMap;
+import io.vertx.core.Vertx;
 import io.vertx.core.buffer.Buffer;
-import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
@@ -12,17 +13,19 @@ import org.slf4j.LoggerFactory;
 import top.dteam.dfx.plugin.Accessible;
 import top.dteam.dfx.utils.Utils;
 
-import java.util.Map;
-
 public class AccessibleHandler implements Handler<RoutingContext> {
     private static final Logger logger = LoggerFactory.getLogger(AccessibleHandler.class);
 
+    private Vertx vertx;
     private String url;
     private Accessible accessible;
+    private CircuitBreaker circuitBreaker;
 
-    public AccessibleHandler(String url, Accessible accessible) {
+    public AccessibleHandler(String url, Accessible accessible, CircuitBreaker circuitBreaker, Vertx vertx) {
+        this.vertx = vertx;
         this.url = url;
         this.accessible = accessible;
+        this.circuitBreaker = circuitBreaker;
     }
 
     @Override
@@ -62,11 +65,9 @@ public class AccessibleHandler implements Handler<RoutingContext> {
 
     private void processRequestBody(HttpServerResponse response, JsonObject body) {
         try {
-            Map result = accessible.invoke(body.getMap());
-            Utils.fireJsonResponse(response, 200, result);
-        } catch (NullPointerException ne) {
-            logger.error("Could not find an Accessible for url: {}", url);
-            Utils.fireSingleMessageResponse(response, 500, "Could not find an Accessible!");
+            Utils.withCircuitBreaker(vertx, circuitBreaker, accessible, body.getMap()
+                    , result -> Utils.fireJsonResponse(response, 200, result)
+                    , throwable -> Utils.fireSingleMessageResponse(response, 500, throwable.getMessage()));
         } catch (Exception e) {
             logger.error("Caught an exception: {}", e);
             Utils.fireSingleMessageResponse(response, 500, e.getMessage());

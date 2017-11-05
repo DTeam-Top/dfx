@@ -1,8 +1,10 @@
 package top.dteam.dfx.config
 
+import groovy.transform.ToString
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
+@ToString
 class DfxConfig {
 
     private static final Logger logger = LoggerFactory.getLogger(DfxConfig.class);
@@ -10,6 +12,8 @@ class DfxConfig {
     int port
     String host = '0.0.0.0'
     Map<String, String> mappings
+
+    int watchCycle
 
     static DfxConfig load(String file = System.getProperty('conf')) {
         if (!file) {
@@ -34,8 +38,9 @@ class DfxConfig {
         (configObject.keySet() - ['port']).each {
             dfxConfig.mappings[it] = configObject[it].plugin
         }
+        dfxConfig.watchCycle = configObject.watchCycle ?: 5000
 
-        logger.debug("mappings: {}", dfxConfig.mappings)
+        logger.debug("dfx Configuration: {}", dfxConfig.toString())
 
         dfxConfig
     }

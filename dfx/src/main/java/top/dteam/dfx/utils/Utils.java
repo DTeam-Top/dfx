@@ -1,12 +1,15 @@
 package top.dteam.dfx.utils;
 
+import io.vertx.circuitbreaker.CircuitBreaker;
+import io.vertx.core.Handler;
+import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.core.json.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import top.dteam.dfx.plugin.Accessible;
 
 import java.util.Map;
-import java.util.regex.Pattern;
 
 public class Utils {
 
@@ -26,4 +29,18 @@ public class Utils {
         response.putHeader("content-type", "application/json; charset=utf-8").end(jsonObject.toString());
     }
 
+    public static void withCircuitBreaker(Vertx vertx, CircuitBreaker circuitBreaker
+            , Accessible accessible, Map params, Handler<Map> successHandler, Handler<Throwable> failureHandler) {
+        circuitBreaker.execute(future ->
+                vertx.executeBlocking(f -> f.complete(accessible.invoke(params))
+                        , result -> future.complete(result.result()))
+        ).setHandler(result -> {
+            if (result.succeeded()) {
+                successHandler.handle((Map) result.result());
+            } else {
+                logger.error("CB[{}] execution failed, cause: ", circuitBreaker.name(), result.cause());
+                failureHandler.handle(result.cause());
+            }
+        });
+    }
 }
