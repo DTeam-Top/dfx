@@ -32,8 +32,20 @@ public class Utils {
     public static void withCircuitBreaker(Vertx vertx, CircuitBreaker circuitBreaker
             , Accessible accessible, Map params, Handler<Map> successHandler, Handler<Throwable> failureHandler) {
         circuitBreaker.execute(future ->
-                vertx.executeBlocking(f -> f.complete(accessible.invoke(params))
-                        , result -> future.complete(result.result()))
+                vertx.executeBlocking(f -> {
+                            try {
+                                f.complete(accessible.invoke(params));
+                            } catch (Throwable throwable) {
+                                f.fail(throwable);
+                            }
+                        }
+                        , result -> {
+                            if (result.succeeded()) {
+                                future.complete(result.result());
+                            } else {
+                                future.fail(result.cause());
+                            }
+                        })
         ).setHandler(result -> {
             if (result.succeeded()) {
                 successHandler.handle((Map) result.result());

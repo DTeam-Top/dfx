@@ -77,7 +77,7 @@ public class WatcherVerticle extends AbstractVerticle {
                         }
 
                         // consumer will undeploy this verticle
-//                        vertx.eventBus().send(PluginManagerVerticle.PLUGINS_CHANGED, this.deploymentID());
+                        vertx.eventBus().send(PluginManagerVerticle.PLUGINS_CHANGED, this.deploymentID());
                     }
                 }
 
