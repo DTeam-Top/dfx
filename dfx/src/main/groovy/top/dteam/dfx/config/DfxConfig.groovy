@@ -33,12 +33,22 @@ class DfxConfig {
         ConfigObject configObject = slurper.parse(config)
 
         DfxConfig dfxConfig = new DfxConfig()
-        dfxConfig.port = configObject.port
-        dfxConfig.mappings = [:]
-        (configObject.keySet() - ['port']).each {
-            dfxConfig.mappings[it] = configObject[it].plugin
+
+        try {
+            dfxConfig.port = configObject.port ?: 8080
+            dfxConfig.host = configObject.host ?: '0.0.0.0'
+            dfxConfig.watchCycle = configObject.watchCycle ?: 5000
+            dfxConfig.mappings = [:]
+            (configObject.keySet() - ['port', 'host', 'watchCycle']).each {
+                dfxConfig.mappings[it] = configObject[it].plugin
+            }
+        } catch (Exception e) {
+            throw new InvalidConfiguriationException(e.message)
         }
-        dfxConfig.watchCycle = configObject.watchCycle ?: 5000
+
+        if(!dfxConfig.mappings) {
+            throw new InvalidConfiguriationException('No url mappings.')
+        }
 
         logger.debug("dfx Configuration: {}", dfxConfig.toString())
 
