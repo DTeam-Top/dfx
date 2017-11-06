@@ -65,6 +65,7 @@ public class AccessibleHandler implements Handler<RoutingContext> {
 
     private void processRequestBody(HttpServerResponse response, JsonObject body) {
         try {
+            logger.debug("RequestURL is {} , RequestParams are {}", this.url,body);
             Utils.withCircuitBreaker(vertx, circuitBreaker, accessible, body.getMap()
                     , result -> Utils.fireJsonResponse(response, 200, result)
                     , throwable -> Utils.fireSingleMessageResponse(response, 500, throwable.getMessage()));
