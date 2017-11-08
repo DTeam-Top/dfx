@@ -43,10 +43,10 @@ public class WatcherVerticle extends AbstractVerticle {
     }
 
     private void kickOffWatchService() throws IOException {
-        Path path = FileSystems.getDefault().getPath(System.getProperty("pf4j.pluginsDir", "plugins")).toAbsolutePath();
+        Path path = FileSystems.getDefault().getPath(MainVerticle.pluginDir).toAbsolutePath();
         path.register(watchService, ENTRY_CREATE, ENTRY_DELETE, ENTRY_MODIFY);
 
-        Path conf = FileSystems.getDefault().getPath(System.getProperty("conf")).toAbsolutePath();
+        Path conf = FileSystems.getDefault().getPath(MainVerticle.conf).toAbsolutePath();
         conf.getParent().register(watchService, ENTRY_MODIFY);
 
         vertx.setPeriodic(watchCycle, tid -> {

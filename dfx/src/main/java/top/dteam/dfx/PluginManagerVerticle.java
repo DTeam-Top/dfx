@@ -16,6 +16,7 @@ import top.dteam.dfx.handler.AccessibleHandler;
 import top.dteam.dfx.plugin.Accessible;
 
 import java.io.IOException;
+import java.nio.file.FileSystems;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -54,7 +55,8 @@ public class PluginManagerVerticle extends AbstractVerticle {
     private Map<String, Accessible> loadExtensions() {
         Map<String, Accessible> accessibleMap = new HashMap<>();
 
-        pluginManager = new DefaultPluginManager();
+        pluginManager = new DefaultPluginManager(
+                FileSystems.getDefault().getPath(MainVerticle.pluginDir).toAbsolutePath());
         pluginManager.loadPlugins();
         pluginManager.startPlugins();
         List<Accessible> accessibleList = pluginManager.getExtensions(Accessible.class);
@@ -96,10 +98,11 @@ public class PluginManagerVerticle extends AbstractVerticle {
     }
 
     public static void start(Vertx vertx) {
-        DfxConfig config = DfxConfig.load();
+        DfxConfig config = DfxConfig.load(MainVerticle.conf);
         vertx.deployVerticle(new PluginManagerVerticle(config), result -> {
             try {
-                vertx.deployVerticle(new WatcherVerticle(config.getWatchCycle()), new DeploymentOptions().setWorker(true));
+                vertx.deployVerticle(new WatcherVerticle(config.getWatchCycle())
+                        , new DeploymentOptions().setWorker(true));
             } catch (IOException e) {
                 logger.error("An error happened during start process: {}", e);
                 vertx.close();

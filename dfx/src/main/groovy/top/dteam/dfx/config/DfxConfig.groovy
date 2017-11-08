@@ -15,9 +15,9 @@ class DfxConfig {
 
     int watchCycle
 
-    static DfxConfig load(String file = System.getProperty('conf')) {
+    static DfxConfig load(String file) {
         if (!file) {
-            throw new FileNotFoundException("Please set config file first!")
+            throw new IllegalArgumentException("Please set config file first!")
         }
 
         File f = new File(file)
@@ -46,7 +46,7 @@ class DfxConfig {
             throw new InvalidConfiguriationException(e.message)
         }
 
-        if(!dfxConfig.mappings) {
+        if (!dfxConfig.mappings) {
             throw new InvalidConfiguriationException('No url mappings.')
         }
 
