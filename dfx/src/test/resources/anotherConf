@@ -1,11 +1,7 @@
-port = 7000
+port = 7001
 
 watchCycle = 2000
 
 "/method1" {
     plugin = "top.dteam.dfx.plugin.implment.Plugin1"
-}
-
-"/method2" {
-    plugin = "top.dteam.dfx.plugin.implment.Plugin2"
 }

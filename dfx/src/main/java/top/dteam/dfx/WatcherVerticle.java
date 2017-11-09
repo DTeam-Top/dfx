@@ -67,7 +67,7 @@ public class WatcherVerticle extends AbstractVerticle {
                     WatchEvent<Path> ev = (WatchEvent<Path>) event;
                     Path file = ev.context();
 
-                    if (file.toString().endsWith(".zip") || file.endsWith(System.getProperty("conf"))) {
+                    if (file.toString().endsWith(".zip") || MainVerticle.conf.endsWith(file.toString())) {
                         if (kind == ENTRY_CREATE) {
                             logger.info("An entry was created: {}", file.getFileName());
                         } else if (kind == ENTRY_DELETE) {

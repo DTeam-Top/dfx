@@ -35,27 +35,42 @@ class IntegrationSpec extends Specification {
         Map result2 = [:]
 
         when:
-        httpClient.post(7000, 'localhost', '/method1', handler(result1))
-                .setChunked(true)
-                .putHeader("content-type", "application/json")
-                .end(new JsonObject([plugin1: 'plugin1']).toString())
-
-        httpClient.post(7000, 'localhost', '/method2', handler(result2))
-                .setChunked(true)
-                .putHeader("content-type", "application/json")
-                .end(new JsonObject([plugin2: 'plugin2']).toString())
-
+        post(7000, '/method1', [plugin1: 'plugin1'], result1)
+        post(7000, '/method2', [plugin2: 'plugin2'], result2)
         sleep(2000)
 
         then:
-        result1 == [plugin1: 'plugin1']
-        result2 == [plugin2: 'plugin2']
+        result1 == [statusCode: 200, plugin1: 'plugin1']
+        result2 == [statusCode: 200, plugin2: 'plugin2']
+    }
+
+    def "should reload conf when conf is modified"() {
+        setup:
+        Map result1 = [:]
+        Map result2 = [:]
+        Map result3 = [:]
+        Map result4 = [:]
+
+        when:
+        Files.copy(Paths.get('src/test/resources/anotherConf')
+                , Paths.get('build/tmp/test/plugins/conf'), REPLACE_EXISTING)
+        sleep 10000
+        post(7000, '/method1', [plugin1: 'plugin1'], result1)
+        post(7000, '/method2', [plugin2: 'plugin2'], result2)
+        post(7001, '/method1', [plugin1: 'plugin1'], result3)
+        post(7001, '/method2', [plugin2: 'plugin2'], result4)
+        sleep(2000)
+
+        then:
+        !result1
+        !result2
+        result3 == [statusCode: 200, plugin1: 'plugin1']
+        result4.statusCode == 404
     }
 
     private void createTestEnv() {
         File dir = new File('build/tmp/test/plugins')
         dir.mkdirs()
-
         Files.copy(Paths.get('src/test/resources/conf')
                 , Paths.get('build/tmp/test/plugins/conf'), REPLACE_EXISTING)
         Files.copy(Paths.get('src/test/resources/dfx-plugin1-0.0.1.zip')
@@ -73,12 +88,20 @@ class IntegrationSpec extends Specification {
 
     private Handler<HttpClientResponse> handler(Map result) {
         { response ->
+            result.statusCode = response.statusCode()
             response.bodyHandler { totalBuffer ->
-                if (totalBuffer.length() > 0) {
+                if (response.statusCode() == 200 && totalBuffer.length() > 0) {
                     result.putAll(totalBuffer.toJsonObject().map)
                 }
             }
         }
+    }
+
+    private void post(int port, String uri, Map data, Map result) {
+        httpClient.post(port, 'localhost', uri, handler(result))
+                .setChunked(true)
+                .putHeader("content-type", "application/json")
+                .end(new JsonObject(data).toString())
     }
 
 }
