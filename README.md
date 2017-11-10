@@ -108,13 +108,13 @@ curl -d '{"name":"name1"}' http://localhost:7000/method1
 
 请注意，发送json作为请求体。
 
-## 热更新
+## 热更新
 
-dfx支持热更新，它会监视conf文件和plugins目录的变化，监控周期由配置文件里的watchCycle指定。目前的reload方式简单粗暴：当发现任意一个变化时，会重新加载整个服务，即相当于重启。
+dfx支持热更新，它会监视conf文件和plugins目录的变化，监控周期由配置文件里的watchCycle指定。目前的reload方式简单粗暴：当发现任意一个变化时，会重新加载整个服务，即相当于重启。
 
-更新plugin时请按照以下步骤进行：
+更新plugin时请按照以下步骤进行：
 - 更新conf文件配置（如有必要）
-- 删除pluygins目录下对应plugin的目录和zip文件
+- 删除pluygins目录下对应plugin的目录和zip文件
 - 复制新的plugin zip文件到plugins目录
 
 提示：建议讲上述过程脚本化，避免更新过程中反复重启。
