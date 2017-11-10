@@ -8,9 +8,10 @@ import io.vertx.core.json.JsonObject
 import spock.lang.Specification
 import spock.lang.Stepwise
 
-import static java.nio.file.StandardCopyOption.*
 import java.nio.file.Files
 import java.nio.file.Paths
+
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING
 
 @Stepwise
 class IntegrationSpec extends Specification {
@@ -26,6 +27,7 @@ class IntegrationSpec extends Specification {
     }
 
     void cleanupSpec() {
+        new File('build/tmp/test/plugins').deleteDir()
         vertx.close()
     }
 
@@ -44,7 +46,7 @@ class IntegrationSpec extends Specification {
         result2 == [statusCode: 200, plugin2: 'plugin2']
     }
 
-    def "should reload conf when conf is modified"() {
+    def "should reload when a plugin is delete"() {
         setup:
         Map result1 = [:]
         Map result2 = [:]
@@ -52,6 +54,8 @@ class IntegrationSpec extends Specification {
         Map result4 = [:]
 
         when:
+        Files.delete(Paths.get('build/tmp/test/plugins/dfx-plugin2-0.0.1.zip'))
+        new File('build/tmp/test/plugins/dfx-plugin2-0.0.1').deleteDir()
         Files.copy(Paths.get('src/test/resources/anotherConf')
                 , Paths.get('build/tmp/test/plugins/conf'), REPLACE_EXISTING)
         sleep 10000
@@ -68,16 +72,31 @@ class IntegrationSpec extends Specification {
         result4.statusCode == 404
     }
 
+    def "should reload when a plugin is added"() {
+        setup:
+        Map result = [:]
+
+        when:
+        Files.copy(Paths.get('src/test/resources/conf')
+                , Paths.get('build/tmp/test/plugins/conf'), REPLACE_EXISTING)
+        Files.copy(Paths.get('src/test/resources/dfx-plugin2-0.0.1.zip')
+                , Paths.get('build/tmp/test/plugins/dfx-plugin2-0.0.1.zip'), REPLACE_EXISTING)
+        sleep 10000
+        post(7000, '/method2', [plugin2: 'plugin2'], result)
+        sleep(2000)
+
+        then:
+        result == [statusCode: 200, plugin2: 'plugin2']
+    }
+
     private void createTestEnv() {
-        File dir = new File('build/tmp/test/plugins')
-        dir.mkdirs()
+        new File('build/tmp/test/plugins').mkdirs()
         Files.copy(Paths.get('src/test/resources/conf')
                 , Paths.get('build/tmp/test/plugins/conf'), REPLACE_EXISTING)
         Files.copy(Paths.get('src/test/resources/dfx-plugin1-0.0.1.zip')
                 , Paths.get('build/tmp/test/plugins/dfx-plugin1-0.0.1.zip'), REPLACE_EXISTING)
         Files.copy(Paths.get('src/test/resources/dfx-plugin2-0.0.1.zip')
                 , Paths.get('build/tmp/test/plugins/dfx-plugin2-0.0.1.zip'), REPLACE_EXISTING)
-        dir.deleteOnExit()
     }
 
     private void kickOffPluginManagerVerticle() {
