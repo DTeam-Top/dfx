@@ -15,6 +15,15 @@ java -jar dfx-0.1-fat.jar -Dconf=conf -Dpf4j.pluginsDir=build/libs/plugins
 下面是conf的一个示例：
 ~~~
 port = 7000
+host = "127.0.0.1"
+
+watchCycle = 5001
+
+circuitBreaker {
+    maxFailures = 5
+    timeout = 10000
+    resetTimeout = 30000
+}
 
 "/method1" {
     plugin = "top.dteam.dfx.plugin.implment.Plugin1"
@@ -26,6 +35,15 @@ port = 7000
 ~~~
 
 文件本身的内容已经说明白了配置的语法，这里不再赘述。开发者需要注意的是，plugin所对应的是插件的全限定名。
+
+port、host、watchCycle、circuitBreaker的缺省值如下：
+- port：8080
+- host："0.0.0.0"
+- watchCycle：5000 ms
+- circuitBreakerOptions：
+  - maxFailures：3次
+  - timeout：5000 ms
+  - resetTimeout：10000 ms
 
 ## 插件开发
 
@@ -89,6 +107,17 @@ curl -d '{"name":"name1"}' http://localhost:7000/method1
 ~~~
 
 请注意，发送json作为请求体。
+
+## 热更新
+
+dfx支持热更新，它会监视conf文件和plugins目录的变化，监控周期由配置文件里的watchCycle指定。目前的reload方式简单粗暴：当发现任意一个变化时，会重新加载整个服务，即相当于重启。
+
+更新plugin时请按照以下步骤进行：
+- 更新conf文件配置（如有必要）
+- 删除pluygins目录下对应plugin的目录和zip文件
+- 复制新的plugin zip文件到plugins目录
+
+提示：建议讲上述过程脚本化，避免更新过程中反复重启。
 
 ## 开发指南
 
