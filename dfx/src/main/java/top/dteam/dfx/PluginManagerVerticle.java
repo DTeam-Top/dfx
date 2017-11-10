@@ -1,7 +1,6 @@
 package top.dteam.dfx;
 
 import io.vertx.circuitbreaker.CircuitBreaker;
-import io.vertx.circuitbreaker.CircuitBreakerOptions;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
@@ -75,12 +74,11 @@ public class PluginManagerVerticle extends AbstractVerticle {
         Router router = Router.router(vertx);
 
         config.getMappings().forEach((key, value) -> {
-                    CircuitBreaker circuitBreaker = CircuitBreaker.create(key, vertx, new CircuitBreakerOptions()
-                            .setMaxFailures(3)
-                            .setTimeout(5000)
-                            .setResetTimeout(10000));
+                    CircuitBreaker circuitBreaker = CircuitBreaker.create(key, vertx
+                            , config.getCircuitBreakerOptions());
                     if (accessibleMap.get(value) != null) {
-                        router.route(key).handler(new AccessibleHandler(key, accessibleMap.get(value), circuitBreaker, vertx));
+                        router.route(key).handler(new AccessibleHandler(key, accessibleMap.get(value)
+                                , circuitBreaker, vertx));
                     }
                 }
         );

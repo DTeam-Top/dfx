@@ -1,6 +1,7 @@
 package top.dteam.dfx.config
 
 import groovy.transform.ToString
+import io.vertx.circuitbreaker.CircuitBreakerOptions
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
@@ -14,6 +15,8 @@ class DfxConfig {
     Map<String, String> mappings
 
     int watchCycle
+
+    CircuitBreakerOptions circuitBreakerOptions
 
     static DfxConfig load(String file) {
         if (!file) {
@@ -39,7 +42,11 @@ class DfxConfig {
             dfxConfig.host = configObject.host ?: '0.0.0.0'
             dfxConfig.watchCycle = configObject.watchCycle ?: 5000
             dfxConfig.mappings = [:]
-            (configObject.keySet() - ['port', 'host', 'watchCycle']).each {
+            dfxConfig.circuitBreakerOptions = new CircuitBreakerOptions()
+                    .setMaxFailures(configObject.circuitBreaker.maxFailures ?: 3)
+                    .setTimeout(configObject.circuitBreaker.timeout ?: 5000)
+                    .setResetTimeout(configObject.circuitBreaker.resetTimeout ?: 10000)
+            (configObject.keySet() - ['port', 'host', 'watchCycle', 'circuitBreaker']).each {
                 dfxConfig.mappings[it] = configObject[it].plugin
             }
         } catch (Exception e) {
