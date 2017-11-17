@@ -12,8 +12,10 @@ java -jar dfx-0.1-fat.jar -Dconf=conf -Dpf4j.pluginsDir=build/libs/plugins
 
 ## 配置文件
 
-下面是conf的一个示例：
+配置文件的语法为Groovy，下面是conf的一个示例：
 ~~~
+import io.vertx.core.http.HttpMethod
+                
 port = 7000
 host = "127.0.0.1"
 
@@ -25,12 +27,20 @@ circuitBreaker {
     resetTimeout = 30000
 }
 
-"/method1" {
-    plugin = "top.dteam.dfx.plugin.implment.Plugin1"
+cors {
+    allowedOriginPattern = '*'
+    allowedMethods = [HttpMethod.POST]
+    allowedHeaders = ['content-type']
 }
 
-"/method2" {
-    plugin = "top.dteam.dfx.plugin.implment.Plugin2"
+mappings {
+    "/method1" {
+        plugin = "top.dteam.dfx.plugin.implment.Plugin1"
+    }
+
+    "/method2" {
+        plugin = "top.dteam.dfx.plugin.implment.Plugin2"
+    }
 }
 ~~~
 
@@ -44,6 +54,18 @@ port、host、watchCycle、circuitBreaker的缺省值如下：
   - maxFailures：3次
   - timeout：5000 ms
   - resetTimeout：10000 ms
+
+如果要让Web前端能正常访问dfx中部署的服务，需要打开cors。同时，这里请留意引入“import io.vertx.core.http.HttpMethod”。
+
+CORS的配置项如下：
+- allowedOriginPattern
+- allowedHeaders
+- allowedMethods
+- exposedHeaders
+- maxAgeSeconds
+- allowCredentials
+
+同时请注意：当allowedOriginPattern为“*”时，allowCredentials不允许为“true”。
 
 ## 插件开发
 
