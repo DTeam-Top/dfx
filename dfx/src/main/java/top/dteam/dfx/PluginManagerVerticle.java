@@ -6,10 +6,12 @@ import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpServer;
 import io.vertx.ext.web.Router;
+import io.vertx.ext.web.handler.CorsHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import ro.fortsoft.pf4j.DefaultPluginManager;
 import ro.fortsoft.pf4j.PluginManager;
+import top.dteam.dfx.config.CorsConfig;
 import top.dteam.dfx.config.DfxConfig;
 import top.dteam.dfx.handler.AccessibleHandler;
 import top.dteam.dfx.plugin.Accessible;
@@ -73,6 +75,14 @@ public class PluginManagerVerticle extends AbstractVerticle {
     private Router buildRouter(DfxConfig config, Map<String, Accessible> accessibleMap) {
         Router router = Router.router(vertx);
 
+        try {
+            addCorsHandler(router, config.getCors());
+        }catch (Exception e) {
+            logger.error("Adding CORS handler failed, cause: {}", e);
+            vertx.close();
+            System.exit(-1);
+        }
+
         config.getMappings().forEach((key, value) -> {
                     CircuitBreaker circuitBreaker = CircuitBreaker.create(key, vertx
                             , config.getCircuitBreakerOptions());
@@ -84,6 +94,34 @@ public class PluginManagerVerticle extends AbstractVerticle {
         );
 
         return router;
+    }
+
+    private static void addCorsHandler(Router router, CorsConfig corsConfig) {
+        if (corsConfig != null) {
+            CorsHandler corsHandler = CorsHandler.create(corsConfig.getAllowedOriginPattern());
+
+            if (corsConfig.getAllowedMethods() != null) {
+                corsHandler.allowedMethods(corsConfig.getAllowedMethods());
+            }
+
+            if (corsConfig.getAllowCredentials() != null) {
+                corsHandler.allowCredentials(corsConfig.getAllowCredentials());
+            }
+
+            if (corsConfig.getAllowedHeaders() != null) {
+                corsHandler.allowedHeaders(corsConfig.getAllowedHeaders());
+            }
+
+            if (corsConfig.getExposedHeaders() != null) {
+                corsHandler.exposedHeaders(corsConfig.getExposedHeaders());
+            }
+
+            if (corsConfig.getMaxAgeSeconds() != null) {
+                corsHandler.maxAgeSeconds(corsConfig.getMaxAgeSeconds());
+            }
+
+            router.route().handler(corsHandler);
+        }
     }
 
     private void buildHttpServer(Router router, int port, String host) {

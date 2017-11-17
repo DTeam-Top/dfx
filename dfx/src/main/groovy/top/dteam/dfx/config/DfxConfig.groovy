@@ -12,10 +12,9 @@ class DfxConfig {
 
     int port
     String host = '0.0.0.0'
+    CorsConfig cors
     Map<String, String> mappings
-
     int watchCycle
-
     CircuitBreakerOptions circuitBreakerOptions
 
     static DfxConfig load(String file) {
@@ -41,13 +40,14 @@ class DfxConfig {
             dfxConfig.port = configObject.port ?: 8080
             dfxConfig.host = configObject.host ?: '0.0.0.0'
             dfxConfig.watchCycle = configObject.watchCycle ?: 5000
-            dfxConfig.mappings = [:]
             dfxConfig.circuitBreakerOptions = new CircuitBreakerOptions()
                     .setMaxFailures(configObject.circuitBreaker.maxFailures ?: 3)
                     .setTimeout(configObject.circuitBreaker.timeout ?: 5000)
                     .setResetTimeout(configObject.circuitBreaker.resetTimeout ?: 10000)
-            (configObject.keySet() - ['port', 'host', 'watchCycle', 'circuitBreaker']).each {
-                dfxConfig.mappings[it] = configObject[it].plugin
+            dfxConfig.cors = configObject.cors ? new CorsConfig(configObject.cors as Map) : null
+            dfxConfig.mappings = [:]
+            configObject.mappings.keySet().each {
+                dfxConfig.mappings[it] = configObject.mappings[it].plugin
             }
         } catch (Exception e) {
             throw new InvalidConfiguriationException(e.message)

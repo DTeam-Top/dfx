@@ -1,11 +1,23 @@
+import io.vertx.core.http.HttpMethod
+
 port = 7000
 
 watchCycle = 2000
 
-"/method1" {
-    plugin = "top.dteam.dfx.plugin.implment.Plugin1"
+cors {
+    allowedOriginPattern = '*'
+    allowedMethods = [HttpMethod.POST]
+    allowedHeaders = ['content-type']
 }
 
-"/method2" {
-    plugin = "top.dteam.dfx.plugin.implment.Plugin2"
+mappings {
+
+    "/method1" {
+        plugin = "top.dteam.dfx.plugin.implment.Plugin1"
+    }
+
+    "/method2" {
+        plugin = "top.dteam.dfx.plugin.implment.Plugin2"
+    }
+
 }

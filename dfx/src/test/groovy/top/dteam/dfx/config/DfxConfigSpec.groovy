@@ -1,5 +1,6 @@
 package top.dteam.dfx.config
 
+import io.vertx.core.http.HttpMethod
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -8,6 +9,8 @@ class DfxConfigSpec extends Specification {
     def "Configuration should be parsed correctly."() {
         setup:
         String conf = """
+                import io.vertx.core.http.HttpMethod
+                
                 port = 7000
                 host = "127.0.0.1"
                 
@@ -19,12 +22,21 @@ class DfxConfigSpec extends Specification {
                     resetTimeout = 30000
                 }
                 
-                "/method1" {
-                    plugin = "top.dteam.dfx.plugin.implment.Plugin1"
+                cors {
+                    allowedOriginPattern = '*'
+                    allowedMethods = [HttpMethod.POST]
+                    allowedHeaders = ['content-type']
+                    allowCredentials = true
                 }
                 
-                "/method2" {
-                    plugin = "top.dteam.dfx.plugin.implment.Plugin2"
+                mappings {
+                    "/method1" {
+                        plugin = "top.dteam.dfx.plugin.implment.Plugin1"
+                    }
+                
+                    "/method2" {
+                        plugin = "top.dteam.dfx.plugin.implment.Plugin2"
+                    }
                 }
         """
 
@@ -38,6 +50,10 @@ class DfxConfigSpec extends Specification {
         config.circuitBreakerOptions.maxFailures == 5
         config.circuitBreakerOptions.timeout == 10000
         config.circuitBreakerOptions.resetTimeout == 30000
+        config.cors.allowedOriginPattern == "*"
+        config.cors.allowedMethods == [HttpMethod.POST] as Set
+        config.cors.allowedHeaders == ['content-type'] as Set
+        config.cors.allowCredentials
         config.mappings == ["/method1"  : "top.dteam.dfx.plugin.implment.Plugin1"
                             , "/method2": "top.dteam.dfx.plugin.implment.Plugin2"]
     }
@@ -45,12 +61,14 @@ class DfxConfigSpec extends Specification {
     def "These properties have default values: host, port, watchCycle, circuitBreakerOptions."() {
         setup:
         String conf = """
-                "/method1" {
-                    plugin = "top.dteam.dfx.plugin.implment.Plugin1"
-                }
-                
-                "/method2" {
-                    plugin = "top.dteam.dfx.plugin.implment.Plugin2"
+                mappings {
+                    "/method1" {
+                        plugin = "top.dteam.dfx.plugin.implment.Plugin1"
+                    }
+                    
+                    "/method2" {
+                        plugin = "top.dteam.dfx.plugin.implment.Plugin2"
+                    }
                 }
         """
 
@@ -58,6 +76,7 @@ class DfxConfigSpec extends Specification {
         DfxConfig config = DfxConfig.build(conf)
 
         then:
+        !config.cors
         config.port == 8080
         config.host == "0.0.0.0"
         config.watchCycle == 5000
@@ -77,13 +96,17 @@ class DfxConfigSpec extends Specification {
         where:
         conf << ["""
                 port = 'test'
-                "/method1" {
-                    plugin = "top.dteam.dfx.plugin.implment.Plugin1"
+                mappings{
+                    "/method1" {
+                        plugin = "top.dteam.dfx.plugin.implment.Plugin1"
+                    }
                 }
         """, """
                 watchCycle = '123e'
-                "/method1" {
-                    plugin = "top.dteam.dfx.plugin.implment.Plugin1"
+                mappings{
+                    "/method1" {
+                        plugin = "top.dteam.dfx.plugin.implment.Plugin1"
+                    }
                 }
         ""","""
                 port = 7000
