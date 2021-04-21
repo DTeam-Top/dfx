@@ -7,14 +7,14 @@ if (!JavaVersion.current().java8Compatible) {
 version = '0.0.1'
 
 repositories {
-    mavenLocal()
-    jcenter()
     mavenCentral()
 }
 
 dependencies {
-    compile files('lib/dfx-i-0.1.jar')
-    compile "ro.fortsoft.pf4j:pf4j:${PF4J_VER}"
+    implementation fileTree('lib')
+    compileOnly project(':dfx-i')
+    compileOnly "ro.fortsoft.pf4j:pf4j:${PF4J_VER}"
+    annotationProcessor "ro.fortsoft.pf4j:pf4j:${PF4J_VER}"
 }
 
 classes.doLast {
@@ -28,21 +28,20 @@ classes.doLast {
                 "Plugin-Id": "dfx-plugin2",
                 "Plugin-Provider": "Hu Jian",
                 "Plugin-Version": version)
-        writeTo("$buildDir/classes/main/META-INF/MANIFEST.MF")
     }
 }
-
+configurations.runtimeOnly.setCanBeResolved(true)
 task plugin(type: Zip, dependsOn: 'classes', description: 'Create a plugin from a jar') {
     into('classes') {
-        from "$buildDir/classes/main"
+        with jar
     }
 
     into('lib') {
-        from configurations.runtime {
-            exclude "dfx-i-0.1.jar"
-            exclude "slf4j-api-1.7.5.jar"
-            exclude "java-semver-0.9.0.jar"
-            exclude "pf4j-1.3.0.jar"
+        from configurations.runtimeOnly {
+            exclude 'dfx-i-*.jar'
+            exclude 'slf4j-api-*.jar'
+            exclude 'java-semver-*.jar'
+            exclude 'pf4j-*.jar'
         }
     }
 }
