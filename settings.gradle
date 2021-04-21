@@ -1,0 +1,2 @@
+rootProject.name = 'dfx'
+include 'dfx', 'dfx-i', 'dfx-plugin1', 'dfx-plugin2'

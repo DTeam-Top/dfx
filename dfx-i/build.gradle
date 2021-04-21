@@ -1,17 +1,17 @@
-apply plugin: 'java'
+plugins {
+    id 'java'
+}
 
 if (!JavaVersion.current().java8Compatible) {
     throw new IllegalStateException('''Please install Java 8!'''.stripMargin())
 }
 
 repositories {
-    mavenLocal()
-    jcenter()
     mavenCentral()
 }
 
 dependencies {
-    compile "ro.fortsoft.pf4j:pf4j:${PF4J_VER}"
+    implementation "ro.fortsoft.pf4j:pf4j:${PF4J_VER}"
 }
 
 version = '0.1'

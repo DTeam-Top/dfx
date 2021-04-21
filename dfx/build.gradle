@@ -1,16 +1,7 @@
-buildscript {
-    repositories {
-        mavenLocal()
-        jcenter()
-        mavenCentral()
-    }
-    dependencies {
-        classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.0'
-    }
+plugins {
+    id 'com.github.johnrengelman.shadow' version '6.1.0'
+    id 'groovy'
 }
-
-apply plugin: 'groovy'
-apply plugin: 'com.github.johnrengelman.shadow'
 
 if (!JavaVersion.current().java8Compatible) {
     throw new IllegalStateException('''Please install Java 8!'''.stripMargin())
@@ -20,27 +11,25 @@ sourceSets.main.java.srcDirs = []
 sourceSets.main.groovy.srcDirs += ["src/main/java"]
 
 repositories {
-    mavenLocal()
-    jcenter()
     mavenCentral()
 }
 
 dependencies {
-    compile "org.codehaus.groovy:groovy-all:${GROOVY_VER}"
-    compile "io.vertx:vertx-core:${VERTX_VER}"
-    compile "io.vertx:vertx-web:${VERTX_VER}"
-    compile "io.vertx:vertx-circuit-breaker:${VERTX_VER}"
-    compile "ch.qos.logback:logback-classic:${LOGBACK_VER}"
-    compile "ro.fortsoft.pf4j:pf4j:${PF4J_VER}"
+    implementation "org.codehaus.groovy:groovy-all:${GROOVY_VER}"
+    implementation "io.vertx:vertx-core:${VERTX_VER}"
+    implementation "io.vertx:vertx-web:${VERTX_VER}"
+    implementation "io.vertx:vertx-circuit-breaker:${VERTX_VER}"
+    implementation "ch.qos.logback:logback-classic:${LOGBACK_VER}"
+    implementation "ro.fortsoft.pf4j:pf4j:${PF4J_VER}"
 
-    testCompile "org.spockframework:spock-core:${SPOCK_VER}"
+    testImplementation "org.spockframework:spock-core:${SPOCK_VER}"
 }
 
 version = '0.1'
 
 shadowJar {
-    classifier = 'fat'
-    baseName = 'dfx'
+    archiveBaseName.set('dfx')
+    archiveClassifier.set('fat')
     manifest {
         attributes 'Main-Class': 'top.dteam.dfx.Launcher'
         attributes 'Main-Verticle': 'top.dteam.dfx.MainVerticle'

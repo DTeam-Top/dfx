@@ -4,7 +4,7 @@ import ro.fortsoft.pf4j.ExtensionPoint;
 
 import java.util.Map;
 
-public interface Accessible extends ExtensionPoint{
+public interface Accessible extends ExtensionPoint {
 
     Map invoke(Map parameters);
 
